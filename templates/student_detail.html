@@ -1,0 +1,498 @@
+{% extends "base.html" %}
+
+{% block title %}{{ student.full_name }} — Institutional Profile Record{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 24px;">
+  <a href="{{ url_for('college.dashboard') }}" style="font-size: 0.85rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 6px;">
+    ← Back to College Dashboard
+  </a>
+</div>
+
+<!-- Profile Header Banner -->
+<div class="card" style="margin-bottom: 24px; padding: 28px;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 6px;">
+        <h1 style="font-size: 2rem; font-weight: 800; color: #fff;">{{ student.full_name }}</h1>
+        <span class="badge badge-emerald">🔒 College Verified Record</span>
+        <span class="badge {{ segment.badge_class }}">{{ segment.title }}</span>
+      </div>
+      <div style="color: var(--text-muted); font-size: 0.95rem; display: flex; gap: 16px; flex-wrap: wrap;">
+        <span><strong>Roll No:</strong> {{ student.roll_number }}</span>
+        <span>•</span>
+        <span><strong>Branch:</strong> {{ student.branch }}</span>
+        <span>•</span>
+        <span><strong>Year:</strong> {{ student.academic_year }}</span>
+        <span>•</span>
+        <span><strong>Status:</strong> <span class="badge badge-blue">{{ student.placement_status }}</span></span>
+      </div>
+    </div>
+
+    <!-- Administrative Action Buttons -->
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <button onclick="openModal('modal-edit-profile')" class="btn btn-secondary btn-sm">
+        ✏️ Edit Record
+      </button>
+      <button onclick="openModal('modal-reset-password')" class="btn btn-secondary btn-sm">
+        🔑 Reset Password
+      </button>
+      <form method="POST" action="{{ url_for('profiles.delete_profile', student_id=student.id) }}" onsubmit="return confirm('Are you sure you want to permanently delete this student record and their credentials?');" style="display: inline;">
+        <button type="submit" class="btn btn-danger btn-sm">
+          🗑️ Delete Record
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1.6fr; gap: 24px; align-items: start;">
+  <!-- LEFT COLUMN: Explainable Score & Pillars -->
+  <div>
+    <!-- Score Card -->
+    <div class="card" style="margin-bottom: 24px;">
+      <div class="card-header">
+        <div class="card-title">
+          <span>⚡</span>
+          <span>Student Success Score</span>
+        </div>
+        <span class="badge {{ score_data.badge_class }}">{{ score_data.grade }}</span>
+      </div>
+
+      <div style="text-align: center; padding: 20px 0 10px 0;">
+        <div style="font-size: 3.5rem; font-weight: 800; color: #fff; line-height: 1;">
+          {{ score_data.overall_score }}
+        </div>
+        <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Out of 100 Multi-Pillar Index</div>
+      </div>
+
+      <!-- 4 Pillars Breakdown -->
+      <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 14px;">
+        <!-- 1. Academic -->
+        <div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 4px;">
+            <span style="color: var(--text-muted);">Academic Foundation</span>
+            <span style="font-weight: 700; color: #fff;">{{ score_data.pillars.academic.score }} / 30</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width: {{ score_data.pillars.academic.percentage }}%; background: #6366f1;"></div>
+          </div>
+        </div>
+
+        <!-- 2. Technical -->
+        <div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 4px;">
+            <span style="color: var(--text-muted);">Technical Stack & Certifications</span>
+            <span style="font-weight: 700; color: #fff;">{{ score_data.pillars.technical.score }} / 30</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width: {{ score_data.pillars.technical.percentage }}%; background: #06b6d4;"></div>
+          </div>
+        </div>
+
+        <!-- 3. Practical -->
+        <div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 4px;">
+            <span style="color: var(--text-muted);">Practical Internship & GitHub</span>
+            <span style="font-weight: 700; color: #fff;">{{ score_data.pillars.practical.score }} / 25</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width: {{ score_data.pillars.practical.percentage }}%; background: #10b981;"></div>
+          </div>
+        </div>
+
+        <!-- 4. Soft Skills -->
+        <div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 4px;">
+            <span style="color: var(--text-muted);">Soft Skills & LinkedIn Brand</span>
+            <span style="font-weight: 700; color: #fff;">{{ score_data.pillars.professional.score }} / 15</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width: {{ score_data.pillars.professional.percentage }}%; background: #8b5cf6;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Positive Drivers -->
+      {% if score_data.positive_indicators %}
+        <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+          <div style="font-size: 0.82rem; font-weight: 700; color: #34d399; margin-bottom: 8px;">✓ Top Positive Strengths</div>
+          <ul style="font-size: 0.78rem; color: var(--text-muted); padding-left: 16px; line-height: 1.5;">
+            {% for item in score_data.positive_indicators %}
+              <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Evidence-Based Risk Signals -->
+    <div class="card" style="margin-bottom: 24px;">
+      <div class="card-header">
+        <div class="card-title">
+          <span>⚠️</span>
+          <span>Risk Flags & Evidence</span>
+        </div>
+        <span class="badge {% if risk_flags %}badge-amber{% else %}badge-emerald{% endif %}">
+          {{ risk_flags|length }} Flags
+        </span>
+      </div>
+
+      {% if risk_flags %}
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          {% for flag in risk_flags %}
+            <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-left: 4px solid {% if flag.severity == 'critical' %}#ef4444{% elif flag.severity == 'warning' %}#f59e0b{% else %}#3b82f6{% endif %}; border-radius: var(--radius-sm); padding: 12px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <span style="font-weight: 700; font-size: 0.85rem; color: #fff;">{{ flag.title }}</span>
+                <span class="badge {% if flag.severity == 'critical' %}badge-red{% elif flag.severity == 'warning' %}badge-amber{% else %}badge-blue{% endif %}" style="font-size: 0.68rem;">
+                  {{ flag.severity|upper }}
+                </span>
+              </div>
+              <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px;">{{ flag.evidence }}</p>
+              <div style="font-size: 0.75rem; color: #93c5fd; background: rgba(59, 130, 246, 0.1); padding: 6px 10px; border-radius: 4px;">
+                <strong>Action:</strong> {{ flag.recommended_action }}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="text-align: center; padding: 20px; color: #34d399; font-size: 0.88rem;">
+          ✓ No active placement vulnerabilities detected!
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN: Detailed Profiles & Recruiter Invitations -->
+  <div>
+    <!-- Academic & Technical Stack Details -->
+    <div class="card" style="margin-bottom: 24px;">
+      <div class="card-header">
+        <div class="card-title">
+          <span>📚</span>
+          <span>Academic & Technical Profile</span>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 20px;">
+        <div style="background: var(--bg-surface); padding: 12px; border-radius: var(--radius-md);">
+          <div class="stat-label">Cumulative GPA</div>
+          <div style="font-size: 1.5rem; font-weight: 800; color: #fff;">{{ "%.2f"|format(student.cgpa) }} / 10.0</div>
+          <div style="font-size: 0.78rem; color: var(--text-dim);">Equivalent Percentage: {{ student.percentage }}%</div>
+        </div>
+
+        <div style="background: var(--bg-surface); padding: 12px; border-radius: var(--radius-md);">
+          <div class="stat-label">Contact Details</div>
+          <div style="font-size: 0.88rem; color: #fff; margin-bottom: 2px;">📧 {{ student.email }}</div>
+          <div style="font-size: 0.88rem; color: #fff;">📱 {{ student.phone or 'Not specified' }}</div>
+        </div>
+      </div>
+
+      <!-- Programming Languages -->
+      <div style="margin-bottom: 18px;">
+        <div class="form-label">Programming Languages Learned</div>
+        <div class="skill-tags">
+          {% if student.programming_languages %}
+            {% for lang in student.programming_languages.split(',') %}
+              <span class="skill-tag" style="background: rgba(99, 102, 241, 0.15); border-color: rgba(99, 102, 241, 0.3); color: #a5b4fc;">
+                {{ lang.strip() }}
+              </span>
+            {% endfor %}
+          {% else %}
+            <span style="font-size: 0.82rem; color: var(--text-dim);">None recorded</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Technical Skills & Frameworks -->
+      <div style="margin-bottom: 18px;">
+        <div class="form-label">Software & Technical Tools</div>
+        <div class="skill-tags">
+          {% if student.technical_skills %}
+            {% for skill in student.technical_skills.split(',') %}
+              <span class="skill-tag" style="background: rgba(6, 182, 212, 0.15); border-color: rgba(6, 182, 212, 0.3); color: #67e8f9;">
+                {{ skill.strip() }}
+              </span>
+            {% endfor %}
+          {% else %}
+            <span style="font-size: 0.82rem; color: var(--text-dim);">None recorded</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Certifications -->
+      <div style="margin-bottom: 18px;">
+        <div class="form-label">Professional Certifications</div>
+        <div class="skill-tags">
+          {% if student.certifications and student.certifications.lower() != 'none' %}
+            {% for cert in student.certifications.split(',') %}
+              <span class="skill-tag" style="background: rgba(139, 92, 246, 0.15); border-color: rgba(139, 92, 246, 0.3); color: #c084fc;">
+                🎓 {{ cert.strip() }}
+              </span>
+            {% endfor %}
+          {% else %}
+            <span style="font-size: 0.82rem; color: var(--text-dim);">No certifications recorded</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Internship Experience -->
+      <div style="margin-bottom: 18px;">
+        <div class="form-label">Practical Internship Details</div>
+        <div style="background: var(--bg-surface); padding: 12px; border-radius: var(--radius-md); font-size: 0.88rem; color: var(--text-main); border: 1px solid var(--border-color);">
+          {{ student.internship_details or 'No practical internship documented.' }}
+        </div>
+      </div>
+
+      <!-- Portfolio Links & Soft Skills -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div>
+          <div class="form-label">Portfolio & Social Links</div>
+          <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem;">
+            <div>
+              {% if student.github_url %}
+                <a href="{{ student.github_url }}" target="_blank" style="color: var(--accent-cyan); display: inline-flex; align-items: center; gap: 4px;">
+                  🐙 Public GitHub Profile ↗
+                </a>
+              {% else %}
+                <span style="color: var(--text-dim);">GitHub: Not linked</span>
+              {% endif %}
+            </div>
+            <div>
+              {% if student.linkedin_url %}
+                <a href="{{ student.linkedin_url }}" target="_blank" style="color: var(--accent-cyan); display: inline-flex; align-items: center; gap: 4px;">
+                  🔗 LinkedIn Profile ↗
+                </a>
+              {% else %}
+                <span style="color: var(--text-dim);">LinkedIn: Not linked</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="form-label">Documented Soft Skills</div>
+          <div class="skill-tags">
+            {% if student.soft_skills %}
+              {% for s in student.soft_skills.split(',') %}
+                <span class="skill-tag">{{ s.strip() }}</span>
+              {% endfor %}
+            {% else %}
+              <span style="font-size: 0.82rem; color: var(--text-dim);">None recorded</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Invitations Received by this student -->
+    <div class="card" style="margin-bottom: 24px;">
+      <div class="card-header">
+        <div class="card-title">
+          <span>✉️</span>
+          <span>Company Invitations & Status</span>
+        </div>
+        <span class="badge badge-purple">{{ invitations|length }} Received</span>
+      </div>
+
+      {% if invitations %}
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          {% for inv in invitations %}
+            <div style="background: var(--bg-surface); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+                <div>
+                  <span style="font-weight: 700; color: #fff;">{{ inv.company_name }}</span>
+                  <span style="color: var(--text-dim); font-size: 0.8rem;"> ({{ inv.industry }})</span>
+                </div>
+                <span class="badge {% if inv.status == 'Accepted' %}badge-emerald{% elif inv.status == 'Pending' %}badge-amber{% elif inv.status == 'Declined' %}badge-red{% else %}badge-purple{% endif %}">
+                  {{ inv.status }}
+                </span>
+              </div>
+              <div style="font-size: 0.88rem; font-weight: 600; color: var(--accent-cyan); margin-bottom: 4px;">
+                Role: {{ inv.job_role }}
+              </div>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px;">
+                {{ inv.message }}
+              </p>
+              <div style="font-size: 0.74rem; color: var(--text-dim);">
+                Dispatched on {{ inv.created_at[:16] }}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="text-align: center; padding: 24px; color: var(--text-dim); font-size: 0.88rem;">
+          No recruitment invitations sent to this student yet.
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Active Interventions for this student -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span>🛠️</span>
+          <span>Interventions History</span>
+        </div>
+      </div>
+
+      {% if interventions %}
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          {% for itv in interventions %}
+            <div style="background: var(--bg-surface); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <span style="font-weight: 700; font-size: 0.88rem; color: #fff;">{{ itv.title }}</span>
+                <span class="badge {% if itv.status == 'Completed' %}badge-emerald{% elif itv.status == 'In Progress' %}badge-blue{% else %}badge-amber{% endif %}">
+                  {{ itv.status }}
+                </span>
+              </div>
+              <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">{{ itv.notes }}</p>
+              <div style="font-size: 0.75rem; color: var(--text-dim);">Assigned to: {{ itv.assigned_to }} • {{ itv.created_at[:10] }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="text-align: center; padding: 20px; color: var(--text-dim); font-size: 0.85rem;">
+          No remedial interventions assigned yet.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODALS ================= -->
+
+<!-- 1. Edit Profile Modal -->
+<div id="modal-edit-profile" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="card-title">
+        <span>✏️ Edit Student Record ({{ student.roll_number }})</span>
+      </div>
+      <button class="close-btn" onclick="closeModal('modal-edit-profile')">&times;</button>
+    </div>
+
+    <form method="POST" action="{{ url_for('profiles.edit_profile', student_id=student.id) }}">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" class="form-input" name="full_name" value="{{ student.full_name }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Branch</label>
+          <input type="text" class="form-input" name="branch" value="{{ student.branch }}" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Academic Year</label>
+          <input type="text" class="form-input" name="academic_year" value="{{ student.academic_year }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone Number</label>
+          <input type="text" class="form-input" name="phone" value="{{ student.phone }}">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">CGPA (0.0 - 10.0)</label>
+          <input type="number" step="0.01" min="0" max="10" class="form-input" name="cgpa" value="{{ student.cgpa }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Percentage (%)</label>
+          <input type="number" step="0.1" min="0" max="100" class="form-input" name="percentage" value="{{ student.percentage }}">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Programming Languages</label>
+        <input type="text" class="form-input" name="programming_languages" value="{{ student.programming_languages }}">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Technical Skills</label>
+        <input type="text" class="form-input" name="technical_skills" value="{{ student.technical_skills }}">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Certifications</label>
+        <input type="text" class="form-input" name="certifications" value="{{ student.certifications }}">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Internship Details</label>
+        <textarea class="form-textarea" name="internship_details" rows="2">{{ student.internship_details }}</textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">LinkedIn URL</label>
+          <input type="url" class="form-input" name="linkedin_url" value="{{ student.linkedin_url }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">GitHub URL</label>
+          <input type="url" class="form-input" name="github_url" value="{{ student.github_url }}">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Soft Skills</label>
+        <input type="text" class="form-input" name="soft_skills" value="{{ student.soft_skills }}">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Placement Status</label>
+          <select name="placement_status" class="form-select">
+            <option value="Eligible" {% if student.placement_status == 'Eligible' %}selected{% endif %}>Eligible</option>
+            <option value="Placed" {% if student.placement_status == 'Placed' %}selected{% endif %}>Placed</option>
+            <option value="Opted Out" {% if student.placement_status == 'Opted Out' %}selected{% endif %}>Opted Out</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Consent Status (Recruiter Visibility)</label>
+          <select name="consent_status" class="form-select">
+            <option value="1" {% if student.consent_status == 1 %}selected{% endif %}>1 - Visible to Corporate Recruiters</option>
+            <option value="0" {% if student.consent_status == 0 %}selected{% endif %}>0 - Hidden / Private</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-edit-profile')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 2. Reset Password Modal -->
+<div id="modal-reset-password" class="modal-overlay">
+  <div class="modal-content" style="max-width: 450px;">
+    <div class="modal-header">
+      <div class="card-title">
+        <span>🔑 Reset Student Password</span>
+      </div>
+      <button class="close-btn" onclick="closeModal('modal-reset-password')">&times;</button>
+    </div>
+
+    <form method="POST" action="{{ url_for('profiles.reset_password', student_id=student.id) }}">
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+        Set a new password for {{ student.full_name }} ({{ student.roll_number }}).
+      </p>
+
+      <div class="form-group">
+        <label class="form-label">New Password *</label>
+        <input type="text" class="form-input" name="new_password" value="student123" required>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-reset-password')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Update Password</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

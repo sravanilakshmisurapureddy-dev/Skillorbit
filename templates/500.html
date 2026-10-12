@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}500 — Server Error | Campus2Career AI{% endblock %}
+
+{% block content %}
+<div style="max-width: 640px; margin: 40px auto; text-align: center;">
+  <div class="card" style="padding: 40px 32px; border-color: rgba(239, 68, 68, 0.35); box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4), 0 0 20px rgba(239, 68, 68, 0.15);">
+    
+    <!-- Status Icon & Pill -->
+    <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 20px;">
+      <div style="width: 80px; height: 80px; border-radius: var(--radius-full); background: rgba(239, 68, 68, 0.12); border: 2px solid rgba(239, 68, 68, 0.35); display: flex; align-items: center; justify-content: center; font-size: 2.5rem;">
+        ⚠️
+      </div>
+    </div>
+
+    <div style="margin-bottom: 12px;">
+      <span class="badge badge-red" style="font-size: 0.8rem; padding: 4px 12px; letter-spacing: 0.04em;">
+        HTTP 500 • INTERNAL SERVER ERROR
+      </span>
+    </div>
+
+    <h1 style="font-size: 2rem; font-weight: 800; color: #fff; margin-bottom: 10px; letter-spacing: -0.02em;">
+      Unexpected Server Incident
+    </h1>
+
+    <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 24px;">
+      An unexpected issue occurred while processing your request. Our automated diagnostics engine has recorded this event.
+    </p>
+
+    <!-- Technical Details Accordion (Collapsible) -->
+    {% if error %}
+      <details style="text-align: left; margin-bottom: 28px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px 16px;">
+        <summary style="cursor: pointer; font-size: 0.82rem; font-weight: 700; color: #fca5a5; display: flex; align-items: center; justify-content: space-between; outline: none; user-select: none;">
+          <span>🔍 View Technical Diagnostics</span>
+          <span style="font-size: 0.75rem; color: var(--text-dim);">Click to toggle</span>
+        </summary>
+        <div style="margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 10px;">
+          <pre style="background: rgba(0, 0, 0, 0.35); color: #f87171; padding: 12px; border-radius: var(--radius-sm); font-size: 0.78rem; text-align: left; overflow-x: auto; white-space: pre-wrap; font-family: monospace; line-height: 1.4;">{{ error }}</pre>
+          <div style="font-size: 0.72rem; color: var(--text-dim); margin-top: 6px;">
+            If this problem persists, please check database connectivity and session parameters.
+          </div>
+        </div>
+      </details>
+    {% endif %}
+
+    <!-- Action Buttons -->
+    <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px;">
+      <button onclick="window.location.reload()" class="btn btn-primary" style="padding: 10px 20px;">
+        <span>🔄 Reload Page</span>
+      </button>
+
+      <button onclick="window.history.back()" class="btn btn-secondary" style="padding: 10px 18px;">
+        <span>← Go Back</span>
+      </button>
+
+      <a href="{{ url_for('index') }}" class="btn btn-secondary" style="padding: 10px 18px;">
+        <span>🏠 Return to Homepage</span>
+      </a>
+    </div>
+
+    <!-- Quick Navigation Links -->
+    <div style="border-top: 1px solid var(--border-color); padding-top: 16px; font-size: 0.8rem; color: var(--text-dim);">
+      <span>Jump to: </span>
+      <a href="{{ url_for('login') }}" style="color: var(--accent-cyan); margin: 0 8px;">Portal Login</a> •
+      {% if current_user %}
+        {% if current_user.role == 'college_admin' %}
+          <a href="{{ url_for('college.dashboard') }}" style="color: var(--accent-cyan); margin: 0 8px;">College Dashboard</a>
+        {% elif current_user.role == 'student' %}
+          <a href="{{ url_for('student.dashboard') }}" style="color: var(--accent-cyan); margin: 0 8px;">Student Profile</a>
+        {% elif current_user.role == 'company' %}
+          <a href="{{ url_for('company.dashboard') }}" style="color: var(--accent-cyan); margin: 0 8px;">Company Hub</a>
+        {% endif %}
+      {% else %}
+        <a href="{{ url_for('login') }}#demo-selector" style="color: var(--accent-cyan); margin: 0 8px;">Demo Persona Switcher</a>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}
