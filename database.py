@@ -11,17 +11,36 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 
 def get_db_path():
-    """Returns database path, utilizing writable /tmp in serverless/Lambda environments."""
-    if os.environ.get('AWS_LAMBDA_FUNCTION_NAME') or os.environ.get('LAMBDA_TASK_ROOT') or os.environ.get('NETLIFY'):
+    """Returns database path based on environment.
+    - Render: uses /data (persistent disk, survives restarts & redeploys)
+    - Netlify/Lambda: uses /tmp (ephemeral, seeded fresh each cold start)
+    - Local: uses campus2career.db next to this file
+    """
+    # Render persistent disk at /data
+    if os.path.isdir('/data'):
+        render_db = '/data/campus2career.db'
+        orig_db = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'campus2career.db')
+        # Seed from bundled DB on first deploy if /data/campus2career.db doesn't exist
+        if not os.path.exists(render_db) and os.path.exists(orig_db):
+            try:
+                shutil.copyfile(orig_db, render_db)
+            except Exception:
+                pass
+        return render_db
+
+    # Netlify / AWS Lambda (serverless, ephemeral /tmp)
+    if os.environ.get('NETLIFY') or os.environ.get('AWS_LAMBDA_FUNCTION_NAME') or os.environ.get('LAMBDA_TASK_ROOT'):
         tmp_db = '/tmp/campus2career.db'
-        orig_db = os.path.join(os.path.dirname(__file__), 'campus2career.db')
+        orig_db = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'campus2career.db')
         if not os.path.exists(tmp_db) and os.path.exists(orig_db):
             try:
                 shutil.copyfile(orig_db, tmp_db)
             except Exception:
                 pass
         return tmp_db
-    return os.path.join(os.path.dirname(__file__), 'campus2career.db')
+
+    # Local development
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), 'campus2career.db')
 
 
 DB_PATH = get_db_path()

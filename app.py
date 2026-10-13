@@ -24,6 +24,12 @@ app.register_blueprint(profiles_bp)
 app.register_blueprint(company_bp)
 app.register_blueprint(student_bp)
 
+# Auto-initialize DB on startup (works with gunicorn on Render)
+with app.app_context():
+    init_db()
+    seed_demo_data()
+
+
 
 @app.context_processor
 def inject_global_context():
