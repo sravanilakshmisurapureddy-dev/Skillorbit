@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In - Campus2Career AI{% endblock %}
+
+{% block content %}
+<div style="max-width: 520px; margin: 40px auto;">
+  <div class="card" style="box-shadow: var(--shadow-md); border-color: rgba(99, 102, 241, 0.25);">
+    <div style="text-align: center; margin-bottom: 24px;">
+      <div style="font-size: 2.2rem; margin-bottom: 8px;">🔐</div>
+      <h1 style="font-size: 1.6rem; font-weight: 800; color: #fff;">Access Your Portal</h1>
+      <p style="font-size: 0.88rem; color: var(--text-muted);">Select your user role and authenticate with your institutional credentials.</p>
+    </div>
+
+    <!-- Role Selection Tabs -->
+    <div class="tabs-nav" style="justify-content: center; margin-bottom: 24px;">
+      <button class="tab-btn active" id="btn-tab-college" onclick="selectLoginRole('college_admin', this)">College Admin</button>
+      <button class="tab-btn" id="btn-tab-student" onclick="selectLoginRole('student', this)">Student</button>
+      <button class="tab-btn" id="btn-tab-company" onclick="selectLoginRole('company', this)">Company</button>
+    </div>
+
+    <form method="POST" action="{{ url_for('login') }}" id="login-form">
+      <input type="hidden" name="role" id="login-role-input" value="college_admin">
+
+      <!-- College Code Field (Displayed for Company Role) -->
+      <div class="form-group" id="group-college-code" style="display: none;">
+        <label class="form-label" for="college_code">Institutional College Code *</label>
+        <input type="text" class="form-input" id="college_code" name="college_code" placeholder="e.g. TECH-2025 or APEX-2025">
+        <span style="font-size: 0.75rem; color: var(--text-dim); display: block; margin-top: 4px;">
+          The official code of the college your company is collaborating with.
+        </span>
+      </div>
+
+      <!-- Identifier Field -->
+      <div class="form-group">
+        <label class="form-label" id="label-identifier" for="identifier">Institutional Email Address</label>
+        <input type="text" class="form-input" id="identifier" name="identifier" required placeholder="admin@techuniv.edu">
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input type="password" class="form-input" id="password" name="password" required placeholder="••••••••">
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; margin-top: 10px;">
+        <span>Sign In to Dashboard →</span>
+      </button>
+    </form>
+  </div>
+
+  <!-- Quick Demo Login Box for Judges -->
+  <div id="demo-selector" class="card" style="margin-top: 24px; background: rgba(18, 24, 38, 0.7); border-color: var(--border-color);">
+    <div style="font-size: 0.85rem; font-weight: 700; color: #fff; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+      <span>⚡ Quick 1-Click Demo Logins</span>
+      <span class="badge badge-purple">Judges Fast-Track</span>
+    </div>
+    <p style="font-size: 0.78rem; color: var(--text-dim); margin-bottom: 14px;">
+      Click any button below to instantly authenticate without typing passwords:
+    </p>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+      <a href="{{ url_for('quick_demo_login', demo_key='college_admin') }}" class="btn btn-secondary btn-sm" style="text-align: left; justify-content: flex-start;">
+        🏛️ Tech Univ Admin
+      </a>
+      <a href="{{ url_for('quick_demo_login', demo_key='company_google') }}" class="btn btn-secondary btn-sm" style="text-align: left; justify-content: flex-start;">
+        🏢 Google Recruiter
+      </a>
+      <a href="{{ url_for('quick_demo_login', demo_key='student_top') }}" class="btn btn-secondary btn-sm" style="text-align: left; justify-content: flex-start;">
+        🎓 Arjun (Star 94.2)
+      </a>
+      <a href="{{ url_for('quick_demo_login', demo_key='student_disconnect') }}" class="btn btn-secondary btn-sm" style="text-align: left; justify-content: flex-start;">
+        🔍 Priya (Risk Persona)
+      </a>
+    </div>
+
+    <!-- Credentials Cheat Sheet -->
+    <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-color); font-size: 0.75rem; color: var(--text-dim);">
+      <strong>Demo Credentials Cheat Sheet:</strong><br>
+      • Admin: <code>admin@techuniv.edu</code> / <code>admin123</code><br>
+      • Student: <code>arjun.sharma@techuniv.edu</code> or phone <code>+91 9123456701</code> / <code>student123</code><br>
+      • Company: <code>recruiter@google.com</code> / <code>google123</code> / Code <code>TECH-2025</code>
+    </div>
+  </div>
+</div>
+
+<script>
+function selectLoginRole(role, btn) {
+  // Update hidden input
+  document.getElementById('login-role-input').value = role;
+
+  // Update tabs active state
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const collegeCodeGroup = document.getElementById('group-college-code');
+  const labelIdentifier = document.getElementById('label-identifier');
+  const inputIdentifier = document.getElementById('identifier');
+
+  if (role === 'college_admin') {
+    collegeCodeGroup.style.display = 'none';
+    labelIdentifier.innerText = 'College Admin Email or Username';
+    inputIdentifier.placeholder = 'admin@techuniv.edu';
+  } else if (role === 'student') {
+    collegeCodeGroup.style.display = 'none';
+    labelIdentifier.innerText = 'Registered Email, Phone, or Roll Number';
+    inputIdentifier.placeholder = 'arjun.sharma@techuniv.edu or +91 9123456701';
+  } else if (role === 'company') {
+    collegeCodeGroup.style.display = 'block';
+    labelIdentifier.innerText = 'Company Recruiter Email';
+    inputIdentifier.placeholder = 'recruiter@google.com';
+    document.getElementById('college_code').required = true;
+  }
+}
+</script>
+{% endblock %}

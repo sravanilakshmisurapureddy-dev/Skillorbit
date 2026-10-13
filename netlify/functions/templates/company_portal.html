@@ -1,0 +1,454 @@
+{% extends "base.html" %}
+
+{% block title %}Recruitment Portal — {{ company.name }}{% endblock %}
+
+{% block content %}
+<!-- Company & College Partnership Header -->
+<div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px; margin-bottom: 28px;">
+  <div>
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+      <h1 style="font-size: 1.85rem; font-weight: 800; color: #fff;">{{ company.name }}</h1>
+      <span class="badge badge-cyan">{{ company.industry }}</span>
+    </div>
+    <div style="color: var(--text-muted); font-size: 0.92rem; display: flex; align-items: center; gap: 8px;">
+      <span>🏛️ <strong>Recruiting From:</strong> {{ college.name }}</span>
+      <span class="badge badge-purple" style="font-size: 0.76rem;">Code: {{ college.code }}</span>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+    <button onclick="openModal('modal-create-opportunity')" class="btn btn-primary btn-sm">
+      <span>➕ Post Recruitment Drive / Opportunity</span>
+    </button>
+  </div>
+</div>
+
+<!-- Stats Banner -->
+<div class="stats-grid">
+  <div class="stat-card" style="border-left: 4px solid var(--accent-cyan);">
+    <span class="stat-label">Eligible Candidates</span>
+    <span class="stat-value">{{ total_college_candidates }}</span>
+    <span class="stat-sub">Partnered College Pool</span>
+  </div>
+
+  <div class="stat-card" style="border-left: 4px solid var(--accent-amber);">
+    <span class="stat-label">Your Shortlists</span>
+    <span class="stat-value" id="kpi-shortlisted-count">{{ shortlisted_count }}</span>
+    <span class="stat-sub">Flagged for Follow-up</span>
+  </div>
+
+  <div class="stat-card" style="border-left: 4px solid var(--primary);">
+    <span class="stat-label">Active Drives</span>
+    <span class="stat-value">{{ opportunities|length }}</span>
+    <span class="stat-sub">Job & Internship Postings</span>
+  </div>
+
+  <div class="stat-card" style="border-left: 4px solid var(--accent-emerald);">
+    <span class="stat-label">Invitations Sent</span>
+    <span class="stat-value">{{ sent_invitations|length }}</span>
+    <span class="stat-sub">Real-time status tracking</span>
+  </div>
+</div>
+
+<!-- Active Opportunity Matching Banner -->
+{% if opportunities %}
+  <div class="card" style="margin-bottom: 24px; padding: 18px; background: rgba(30, 41, 59, 0.6); border-color: rgba(6, 182, 212, 0.3);">
+    <form method="GET" action="{{ url_for('company.dashboard') }}" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <span style="font-weight: 700; color: #fff; font-size: 0.95rem;">🎯 Matching Candidates Against Opportunity:</span>
+        <select name="opportunity_id" class="select-filter" onchange="this.form.submit()" style="border-color: var(--accent-cyan);">
+          {% for opp in opportunities %}
+            <option value="{{ opp.id }}" {% if active_opportunity and active_opportunity.id == opp.id %}selected{% endif %}>
+              {{ opp.title }} ({{ opp.role_type }}) — Min CGPA: {{ opp.min_cgpa }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      {% if active_opportunity %}
+        <div style="font-size: 0.8rem; color: var(--text-muted);">
+          <strong>Required Skills:</strong> <span style="color: var(--accent-cyan);">{{ active_opportunity.required_skills }}</span>
+        </div>
+      {% endif %}
+    </form>
+  </div>
+{% endif %}
+
+<!-- Tabs Wrapper -->
+<div class="tabs-wrapper">
+  <div class="tabs-nav">
+    <button class="tab-btn active" onclick="switchTab('tab-candidates', this)">👥 Candidate Discovery & Matching ({{ students|length }})</button>
+    <button class="tab-btn" onclick="switchTab('tab-invitations', this)">✉️ Sent Invitations & Status Tracker ({{ sent_invitations|length }})</button>
+    <button class="tab-btn" onclick="switchTab('tab-opportunities', this)">📋 Active Opportunities ({{ opportunities|length }})</button>
+  </div>
+
+  <!-- TAB 1: Candidates Discovery -->
+  <div id="tab-candidates" class="tab-pane active">
+    <!-- Filter Toolbar -->
+    <form method="GET" action="{{ url_for('company.dashboard') }}" class="toolbar">
+      {% if active_opportunity %}
+        <input type="hidden" name="opportunity_id" value="{{ active_opportunity.id }}">
+      {% endif %}
+
+      <input type="text" name="search" class="search-input" placeholder="Search by name, roll no, skills, certifications..." value="{{ active_filters.search }}">
+
+      <select name="branch" class="select-filter">
+        <option value="All">All Branches</option>
+        {% for b in distinct_branches %}
+          <option value="{{ b }}" {% if active_filters.branch == b %}selected{% endif %}>{{ b }}</option>
+        {% endfor %}
+      </select>
+
+      <input type="number" step="0.1" name="min_cgpa" class="select-filter" style="width: 120px;" placeholder="Min CGPA" value="{{ active_filters.min_cgpa }}">
+
+      <input type="text" name="skill" class="select-filter" placeholder="Required Skill (e.g. Python)" value="{{ active_filters.skill }}">
+
+      <select name="segment" class="select-filter">
+        <option value="All">All Cohorts</option>
+        <option value="STAR_TALENT" {% if active_filters.segment == 'STAR_TALENT' %}selected{% endif %}>Star Talent / Day-1 Ready</option>
+        <option value="PRACTICAL_BUILDERS" {% if active_filters.segment == 'PRACTICAL_BUILDERS' %}selected{% endif %}>Practical Builders</option>
+        <option value="HIGH_ACADEMIC_LOW_PRACTICAL" {% if active_filters.segment == 'HIGH_ACADEMIC_LOW_PRACTICAL' %}selected{% endif %}>High Academic / Low Practical</option>
+      </select>
+
+      <label style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: #fff; cursor: pointer;">
+        <input type="checkbox" name="shortlisted" value="1" {% if active_filters.shortlisted == '1' %}checked{% endif %} onchange="this.form.submit()">
+        Shortlisted Only
+      </label>
+
+      <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+      <a href="{{ url_for('company.dashboard') }}" class="btn btn-secondary btn-sm">Reset</a>
+    </form>
+
+    <!-- Candidate Cards Grid -->
+    <div class="candidate-grid">
+      {% for s in students %}
+        <div class="candidate-card" style="border-top: 3px solid {% if s.match_pct >= 80 %}#10b981{% elif s.match_pct >= 65 %}#06b6d4{% else %}#6366f1{% endif %};">
+          <div>
+            <!-- Header Row -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+              <div>
+                <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 2px;">{{ s.full_name }}</h3>
+                <div style="font-size: 0.78rem; color: var(--text-dim);">{{ s.roll_number }} • {{ s.branch }}</div>
+              </div>
+
+              <!-- AI Match Percentage Badge -->
+              <div style="text-align: right;">
+                <span class="badge {% if s.match_pct >= 80 %}badge-emerald{% elif s.match_pct >= 65 %}badge-cyan{% else %}badge-blue{% endif %}" style="font-size: 0.82rem; font-weight: 800;">
+                  🎯 {{ s.match_pct }}% Match
+                </span>
+                <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 2px;">Success Score: {{ s.overall_score }}</div>
+              </div>
+            </div>
+
+            <!-- Match Explanation -->
+            {% if s.match_data.explanation %}
+              <div style="background: rgba(6, 182, 212, 0.08); border-left: 3px solid var(--accent-cyan); padding: 6px 10px; border-radius: 4px; font-size: 0.76rem; color: #a5f3fc; margin-bottom: 12px;">
+                {{ s.match_data.explanation }}
+              </div>
+            {% endif %}
+
+            <!-- Academics & Cohort Segment -->
+            <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+              <span class="badge badge-purple" style="font-size: 0.75rem;">
+                CGPA: {{ "%.2f"|format(s.cgpa) }}
+              </span>
+              <span class="badge {{ s.segment.badge_class }}" style="font-size: 0.72rem;">
+                {{ s.segment.title }}
+              </span>
+            </div>
+
+            <!-- Key Skills -->
+            <div style="margin-bottom: 12px;">
+              <div style="font-size: 0.74rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase;">Technical Skills</div>
+              <div class="skill-tags">
+                {% if s.technical_skills %}
+                  {% for sk in s.technical_skills.split(',')[:4] %}
+                    <span class="skill-tag" style="font-size: 0.72rem;">{{ sk.strip() }}</span>
+                  {% endfor %}
+                {% endif %}
+                {% if s.programming_languages %}
+                  {% for lang in s.programming_languages.split(',')[:2] %}
+                    <span class="skill-tag" style="background: rgba(99,102,241,0.15); border-color: rgba(99,102,241,0.3); color: #a5b4fc; font-size: 0.72rem;">{{ lang.strip() }}</span>
+                  {% endfor %}
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Internship snippet -->
+            {% if s.internship_details and s.internship_details.lower() not in ['none', 'none recorded', 'n/a'] %}
+              <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 14px; background: var(--bg-surface); padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                💼 <strong>Experience:</strong> {{ s.internship_details[:90] }}...
+              </div>
+            {% endif %}
+
+            <!-- Social Links -->
+            <div style="display: flex; gap: 12px; margin-bottom: 16px; font-size: 0.78rem;">
+              {% if s.github_url %}
+                <a href="{{ s.github_url }}" target="_blank" style="color: var(--accent-cyan);">🐙 GitHub ↗</a>
+              {% endif %}
+              {% if s.linkedin_url %}
+                <a href="{{ s.linkedin_url }}" target="_blank" style="color: var(--accent-cyan);">🔗 LinkedIn ↗</a>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Card Actions Footer -->
+          <div style="border-top: 1px solid var(--border-color); padding-top: 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+            <!-- Shortlist Toggle Button -->
+            <button onclick="toggleShortlist({{ s.id }}, this)" class="btn btn-secondary btn-sm" style="font-size: 0.78rem; {% if s.is_shortlisted %}color: #fbbf24;{% endif %}">
+              {% if s.is_shortlisted %}★ Shortlisted{% else %}☆ Shortlist{% endif %}
+            </button>
+
+            <!-- Invitation Status or Invite Button -->
+            {% if s.invited_inv %}
+              <span class="badge {% if s.invited_inv.status == 'Accepted' %}badge-emerald{% elif s.invited_inv.status == 'Pending' %}badge-amber{% elif s.invited_inv.status == 'Declined' %}badge-red{% else %}badge-purple{% endif %}">
+                {{ s.invited_inv.status }} ({{ s.invited_inv.job_role[:16] }})
+              </span>
+            {% else %}
+              <button onclick="openInviteModal({{ s.id }}, '{{ s.full_name }}', '{{ s.roll_number }}')" class="btn btn-primary btn-sm" style="font-size: 0.78rem;">
+                ✉️ Invite Candidate
+              </button>
+            {% endif %}
+          </div>
+        </div>
+      {% else %}
+        <div style="grid-column: 1 / -1; text-align: center; padding: 60px; color: var(--text-dim);">
+          No candidates match the specified criteria. Try clearing filters or selecting another branch.
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- TAB 2: Sent Invitations Tracker -->
+  <div id="tab-invitations" class="tab-pane">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span>✉️</span>
+          <span>Dispatched Invitations & Candidate Responses</span>
+        </div>
+        <span class="badge badge-emerald">{{ sent_invitations|length }} Total Sent</span>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Candidate</th>
+              <th>Job Role</th>
+              <th>CGPA & Branch</th>
+              <th>Status</th>
+              <th>Dispatched Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for inv in sent_invitations %}
+              <tr>
+                <td>
+                  <div style="font-weight: 600; color: #fff;">{{ inv.student_name }}</div>
+                  <div style="font-size: 0.75rem; color: var(--text-dim);">{{ inv.roll_number }} • {{ inv.student_email }}</div>
+                </td>
+                <td>
+                  <span style="font-weight: 600; color: var(--accent-cyan);">{{ inv.job_role }}</span>
+                </td>
+                <td>
+                  <span style="font-weight: 700; color: #fff;">{{ "%.2f"|format(inv.cgpa) }}</span>
+                  <div style="font-size: 0.75rem; color: var(--text-dim);">{{ inv.branch }}</div>
+                </td>
+                <td>
+                  <span class="badge {% if inv.status == 'Accepted' %}badge-emerald{% elif inv.status == 'Pending' %}badge-amber{% elif inv.status == 'Declined' %}badge-red{% else %}badge-purple{% endif %}">
+                    {{ inv.status }}
+                  </span>
+                </td>
+                <td style="font-size: 0.8rem; color: var(--text-dim);">
+                  {{ inv.created_at[:16] }}
+                </td>
+                <td>
+                  {% if inv.status == 'Pending' %}
+                    <form method="POST" action="{{ url_for('company.withdraw_invitation', inv_id=inv.id) }}" style="display: inline;">
+                      <button type="submit" class="btn btn-danger btn-sm" style="font-size: 0.72rem; padding: 3px 8px;">
+                        Withdraw
+                      </button>
+                    </form>
+                  {% else %}
+                    <span style="font-size: 0.75rem; color: var(--text-dim);">Concluded</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 30px; color: var(--text-dim);">
+                  No invitations dispatched yet. Explore candidates in the Discovery tab and click "Invite Candidate" to initiate interviews.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: Active Opportunities -->
+  <div id="tab-opportunities" class="tab-pane">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+      {% for opp in opportunities %}
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+            <h3 style="font-size: 1.2rem; font-weight: 700; color: #fff;">{{ opp.title }}</h3>
+            <span class="badge badge-purple">{{ opp.role_type }}</span>
+          </div>
+
+          <div style="font-size: 0.85rem; color: #34d399; font-weight: 600; margin-bottom: 8px;">
+            💰 {{ opp.salary_or_stipend or 'Competitive Industry Standard' }}
+          </div>
+
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+            {{ opp.job_description }}
+          </p>
+
+          <div style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 6px;">
+            <strong>Required Skills:</strong> <span style="color: var(--accent-cyan);">{{ opp.required_skills }}</span>
+          </div>
+          <div style="font-size: 0.8rem; color: var(--text-dim);">
+            <strong>Eligibility:</strong> Min CGPA {{ opp.min_cgpa }} • Branches: {{ opp.eligible_branches }}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODALS ================= -->
+
+<!-- 1. Post Opportunity Modal -->
+<div id="modal-create-opportunity" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="card-title">
+        <span>➕ Post Recruitment Drive / Opportunity</span>
+      </div>
+      <button class="close-btn" onclick="closeModal('modal-create-opportunity')">&times;</button>
+    </div>
+
+    <form method="POST" action="{{ url_for('company.create_opportunity') }}">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Job Title / Designation *</label>
+          <input type="text" class="form-input" name="title" required placeholder="e.g. Cloud Software Engineer">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Opportunity Type *</label>
+          <select name="role_type" class="form-select">
+            <option value="Full-time">Full-time</option>
+            <option value="Internship">Internship</option>
+            <option value="Special Event">Special Event / Hackathon</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Job Description *</label>
+        <textarea class="form-textarea" name="job_description" rows="3" required placeholder="Outline role responsibilities, team impact, and work environment..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Required Skills & Technologies (Comma-separated) *</label>
+        <input type="text" class="form-input" name="required_skills" required placeholder="Python, Docker, React, AWS, SQL">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Minimum CGPA Cutoff</label>
+          <input type="number" step="0.1" min="0" max="10" class="form-input" name="min_cgpa" value="7.0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Compensation / Stipend</label>
+          <input type="text" class="form-input" name="salary_or_stipend" placeholder="e.g. ₹15,00,000 / annum or ₹40,000 / month">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Eligible Branches (Comma-separated or 'All')</label>
+        <input type="text" class="form-input" name="eligible_branches" value="All" placeholder="e.g. Computer Science, Information Technology, AI">
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-create-opportunity')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Publish Opportunity</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 2. Send Invitation Modal -->
+<div id="modal-invite-candidate" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="card-title">
+        <span>✉️ Dispatch Recruitment Invitation</span>
+      </div>
+      <button class="close-btn" onclick="closeModal('modal-invite-candidate')">&times;</button>
+    </div>
+
+    <form method="POST" action="{{ url_for('company.send_invitation') }}">
+      <input type="hidden" name="student_id" id="invite-student-id">
+
+      <div style="background: rgba(99, 102, 241, 0.1); border-radius: var(--radius-md); padding: 12px; margin-bottom: 18px; border: 1px solid rgba(99, 102, 241, 0.25);">
+        <div style="font-size: 0.78rem; color: var(--text-dim);">Selected Candidate:</div>
+        <div style="font-weight: 700; color: #fff; font-size: 1.05rem;" id="invite-student-name">Arjun Sharma</div>
+        <div style="font-size: 0.8rem; color: #a5b4fc;" id="invite-student-roll">2025CS101</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Position / Job Role *</label>
+        <input type="text" class="form-input" name="job_role" id="invite-job-role" required placeholder="e.g. Associate Cloud Software Engineer">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Job Summary & Team Description</label>
+        <textarea class="form-textarea" name="job_description" id="invite-job-desc" rows="2" placeholder="Brief outline of team and project mission..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Required Skills</label>
+        <input type="text" class="form-input" name="required_skills" id="invite-req-skills" placeholder="Python, Docker, SQL, React">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Eligibility Criteria</label>
+        <input type="text" class="form-input" name="eligibility_criteria" placeholder="CGPA >= 7.5, Strong Problem Solving">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Personalized Invitation Message to Candidate</label>
+        <textarea class="form-textarea" name="message" rows="3" placeholder="Hello! We reviewed your profile and projects, and were particularly impressed by your skills. We would love to invite you for an interview."></textarea>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-invite-candidate')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Dispatch Invitation</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openInviteModal(studentId, studentName, studentRoll) {
+  document.getElementById('invite-student-id').value = studentId;
+  document.getElementById('invite-student-name').innerText = studentName;
+  document.getElementById('invite-student-roll').innerText = studentRoll;
+
+  // Prefill with active opportunity if available
+  {% if active_opportunity %}
+    document.getElementById('invite-job-role').value = "{{ active_opportunity.title }}";
+    document.getElementById('invite-job-desc').value = "{{ active_opportunity.job_description[:120] }}";
+    document.getElementById('invite-req-skills').value = "{{ active_opportunity.required_skills }}";
+  {% else %}
+    document.getElementById('invite-job-role').value = "Software Engineering Associate";
+  {% endif %}
+
+  openModal('modal-invite-candidate');
+}
+</script>
+{% endblock %}

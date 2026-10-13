@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome to Campus2Career AI{% endblock %}
+
+{% block content %}
+<div style="text-align: center; max-width: 880px; margin: 30px auto 50px auto;">
+  <div class="badge badge-emerald" style="margin-bottom: 16px; font-size: 0.85rem; padding: 6px 16px;">
+    ⚡ Unified Placement & Corporate Recruitment Ecosystem
+  </div>
+  <h1 style="font-size: 3rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.03em; margin-bottom: 20px;">
+    Empowering Colleges, Students & Industry with <span style="background: linear-gradient(135deg, #6366f1, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Explainable AI</span>
+  </h1>
+  <p style="font-size: 1.15rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 32px;">
+    A centralized, role-based platform bridging institutional academic management, student career advancement, and partner company recruitment matching.
+  </p>
+
+  <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
+    <a href="{{ url_for('login') }}" class="btn btn-primary" style="padding: 12px 28px; font-size: 1rem;">
+      <span>🚀 Open Portal Login</span>
+    </a>
+    <a href="#quick-demos" class="btn btn-secondary" style="padding: 12px 24px; font-size: 1rem;">
+      <span>🎯 1-Click Judge Demo Switcher</span>
+    </a>
+  </div>
+</div>
+
+<!-- Live Platform Stats -->
+<div class="stats-grid" style="margin-bottom: 50px;">
+  <div class="stat-card" style="border-top: 3px solid var(--primary);">
+    <span class="stat-label">Verified Students</span>
+    <span class="stat-value">{{ total_students }}</span>
+    <span class="stat-sub">Across Engineering & Tech</span>
+  </div>
+  <div class="stat-card" style="border-top: 3px solid var(--accent-cyan);">
+    <span class="stat-label">Partner Companies</span>
+    <span class="stat-value">{{ total_companies }}</span>
+    <span class="stat-sub">Google, Microsoft, AWS, Infosys</span>
+  </div>
+  <div class="stat-card" style="border-top: 3px solid var(--accent-emerald);">
+    <span class="stat-label">Recruitment Invitations</span>
+    <span class="stat-value">{{ total_invitations }}</span>
+    <span class="stat-sub">Real-time status tracking</span>
+  </div>
+  <div class="stat-card" style="border-top: 3px solid var(--accent-purple);">
+    <span class="stat-label">AI Readiness Engine</span>
+    <span class="stat-value">4 Pillars</span>
+    <span class="stat-sub">Academic, Tech, Practical, Brand</span>
+  </div>
+</div>
+
+<!-- 1-Click Hackathon Demo Selector for Evaluators -->
+<div id="quick-demos" class="card" style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95)); border: 1px solid rgba(99, 102, 241, 0.4); margin-bottom: 50px;">
+  <div class="card-header">
+    <div class="card-title">
+      <span style="font-size: 1.4rem;">🎯</span>
+      <span>1-Click Live Persona Demos (For Hackathon Judges)</span>
+    </div>
+    <span class="badge badge-purple">Instant Auth • No Typing Required</span>
+  </div>
+
+  <p style="color: var(--text-muted); font-size: 0.92rem; margin-bottom: 20px;">
+    Select any persona to immediately experience their dedicated dashboard, role permissions, and customized data scope:
+  </p>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+    <!-- Demo 1: College Admin -->
+    <a href="{{ url_for('quick_demo_login', demo_key='college_admin') }}" class="card" style="background: rgba(99, 102, 241, 0.08); border-color: rgba(99, 102, 241, 0.3); text-align: left; padding: 18px;">
+      <div style="font-weight: 700; color: #818cf8; font-size: 1rem; margin-bottom: 6px;">🏛️ College Administrator</div>
+      <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Tech University (TECH-2025). Manage students, CSV import, risk flags, Top-N selection, and mentoring.</div>
+      <span class="btn btn-primary btn-sm" style="width: 100%;">Enter College Dashboard →</span>
+    </a>
+
+    <!-- Demo 2: Star Student -->
+    <a href="{{ url_for('quick_demo_login', demo_key='student_top') }}" class="card" style="background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.3); text-align: left; padding: 18px;">
+      <div style="font-weight: 700; color: #34d399; font-size: 1rem; margin-bottom: 6px;">🎓 Student: Arjun Sharma</div>
+      <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Day-1 Ready Star (Score 94.2). Has Google & Microsoft invitations. Accept/Decline invitations workflow.</div>
+      <span class="btn btn-success btn-sm" style="width: 100%;">Enter Student Portal →</span>
+    </a>
+
+    <!-- Demo 3: Disconnect Persona (Member 2 core showcase) -->
+    <a href="{{ url_for('quick_demo_login', demo_key='student_disconnect') }}" class="card" style="background: rgba(139, 92, 246, 0.08); border-color: rgba(139, 92, 246, 0.3); text-align: left; padding: 18px;">
+      <div style="font-weight: 700; color: #c084fc; font-size: 1rem; margin-bottom: 6px;">🔍 Student: Priya Nair</div>
+      <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">High CGPA 9.15 but Low Practical Readiness. Shows Member 2's specific evidence-based risk flags!</div>
+      <span class="btn btn-secondary btn-sm" style="width: 100%; border-color: #a855f7; color: #d8b4fe;">Inspect Risk Flags →</span>
+    </a>
+
+    <!-- Demo 4: Google Recruiter -->
+    <a href="{{ url_for('quick_demo_login', demo_key='company_google') }}" class="card" style="background: rgba(6, 182, 212, 0.08); border-color: rgba(6, 182, 212, 0.3); text-align: left; padding: 18px;">
+      <div style="font-weight: 700; color: #22d3ee; font-size: 1rem; margin-bottom: 6px;">🏢 Google Cloud Recruiter</div>
+      <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Partnered with Tech University. Candidate discovery, AI match scoring, shortlists, and direct invites.</div>
+      <span class="btn btn-secondary btn-sm" style="width: 100%; border-color: #06b6d4; color: #67e8f9;">Enter Recruiter Hub →</span>
+    </a>
+  </div>
+</div>
+
+<!-- Three Distinct Dashboards Architecture -->
+<div style="margin-bottom: 50px;">
+  <h2 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 8px;">Three Purpose-Built Dashboards</h2>
+  <p style="color: var(--text-muted); margin-bottom: 24px;">Strict role-based access control with data isolation enforced on backend and database.</p>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
+    <!-- Dashboard 1: College -->
+    <div class="card">
+      <div style="font-size: 2rem; margin-bottom: 12px;">🏛️</div>
+      <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 10px;">1. College Dashboard</h3>
+      <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 16px;">
+        Empowers institutional leadership and placement cells to track cohort health and drive targeted remediation.
+      </p>
+      <ul style="color: var(--text-main); font-size: 0.85rem; padding-left: 18px; line-height: 1.7; margin-bottom: 20px;">
+        <li>Full student management with auto-generated credentials</li>
+        <li>Bulk CSV/Excel import, deduplication & data dictionary</li>
+        <li>Explainable Student Success Score (0-100) & risk radar</li>
+        <li>Cohort segmentation (High Academics / Low Practical)</li>
+        <li>Configurable Top-N placement drive selection</li>
+        <li>Faculty intervention tracking & audit trails</li>
+      </ul>
+      <a href="{{ url_for('college.dashboard') }}" class="btn btn-secondary btn-sm" style="width: 100%;">View College Features →</a>
+    </div>
+
+    <!-- Dashboard 2: Student -->
+    <div class="card">
+      <div style="font-size: 2rem; margin-bottom: 12px;">🎓</div>
+      <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 10px;">2. Student Dashboard</h3>
+      <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 16px;">
+        Transparent, read-only career mirror giving students clarity on readiness and recruitment opportunities.
+      </p>
+      <ul style="color: var(--text-main); font-size: 0.85rem; padding-left: 18px; line-height: 1.7; margin-bottom: 20px;">
+        <li>Strict read-only security on college-verified records</li>
+        <li>Transparent 4-pillar score breakdown & driver insights</li>
+        <li>Tailored AI recommendations & personalized career pathways</li>
+        <li>Received company recruitment invitations center</li>
+        <li>Real-time Accept / Decline decision workflows</li>
+        <li>Recruitment status tracking (Pending/Accepted/Declined)</li>
+      </ul>
+      <a href="{{ url_for('student.dashboard') }}" class="btn btn-secondary btn-sm" style="width: 100%;">View Student Features →</a>
+    </div>
+
+    <!-- Dashboard 3: Company -->
+    <div class="card">
+      <div style="font-size: 2rem; margin-bottom: 12px;">🏢</div>
+      <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 10px;">3. Collaborated Company Dashboard</h3>
+      <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 16px;">
+        Streamlined talent acquisition scoped strictly to authorized institutional partners.
+      </p>
+      <ul style="color: var(--text-main); font-size: 0.85rem; padding-left: 18px; line-height: 1.7; margin-bottom: 20px;">
+        <li>Secure dual authentication: Company creds + College Code</li>
+        <li>Candidate discovery with deep multi-facet filters</li>
+        <li>AI Opportunity-to-Candidate matching algorithm (%)</li>
+        <li>One-click candidate shortlisting</li>
+        <li>Direct interview & recruitment invitation dispatch</li>
+        <li>Invitation status tracker (Pending, Accepted, Withdrawn)</li>
+      </ul>
+      <a href="{{ url_for('company.dashboard') }}" class="btn btn-secondary btn-sm" style="width: 100%;">View Recruiter Features →</a>
+    </div>
+  </div>
+</div>
+
+<!-- 5-Member Hackathon Architecture Alignment -->
+<div class="card" style="margin-bottom: 40px;">
+  <div class="card-header">
+    <div class="card-title">
+      <span>🤝</span>
+      <span>Team Execution Matrix (5 Members, 20 Hours, 0 Blockers)</span>
+    </div>
+    <span class="badge badge-emerald">All 5 Subsystems Integrated</span>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px;">
+    <div style="background: var(--bg-surface); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+      <div style="font-weight: 700; color: #60a5fa; margin-bottom: 4px;">Member 1: Data Integration</div>
+      <div style="font-size: 0.76rem; color: var(--text-dim); margin-bottom: 8px;"><code>database.py</code>, <code>data_integration.py</code></div>
+      <div style="font-size: 0.8rem; color: var(--text-muted);">Common schema, SQLite tables, CSV batch import, duplicate detection, and data dictionary.</div>
+    </div>
+
+    <div style="background: var(--bg-surface); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+      <div style="font-weight: 700; color: #a78bfa; margin-bottom: 4px;">Member 2: Analytics & AI Logic</div>
+      <div style="font-size: 0.76rem; color: var(--text-dim); margin-bottom: 8px;"><code>success_score.py</code>, <code>risk_flags.py</code>, <code>segmentation.py</code></div>
+      <div style="font-size: 0.8rem; color: var(--text-muted);">Student Success Score (0-100), High Academics/Low Readiness flag, trends & recommendations.</div>
+    </div>
+
+    <div style="background: var(--bg-surface); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+      <div style="font-weight: 700; color: #34d399; margin-bottom: 4px;">Member 3: College Dashboard</div>
+      <div style="font-size: 0.76rem; color: var(--text-dim); margin-bottom: 8px;"><code>college_dashboard.py</code>, <code>student_profiles.py</code></div>
+      <div style="font-size: 0.8rem; color: var(--text-muted);">Overview metrics, Top-N selection, interactive student directory, profile manager, and interventions.</div>
+    </div>
+
+    <div style="background: var(--bg-surface); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+      <div style="font-weight: 700; color: #22d3ee; margin-bottom: 4px;">Member 4: Company Portal</div>
+      <div style="font-size: 0.76rem; color: var(--text-dim); margin-bottom: 8px;"><code>company_portal.py</code>, <code>matching.py</code></div>
+      <div style="font-size: 0.8rem; color: var(--text-muted);">Partner company portal, talent match engine, opportunities, candidate shortlists, and invitations.</div>
+    </div>
+
+    <div style="background: var(--bg-surface); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+      <div style="font-weight: 700; color: #f472b6; margin-bottom: 4px;">Member 5: Integration Lead</div>
+      <div style="font-size: 0.76rem; color: var(--text-dim); margin-bottom: 8px;"><code>app.py</code>, <code>student_portal.py</code>, <code>README.md</code></div>
+      <div style="font-size: 0.8rem; color: var(--text-muted);">Role-based authentication, student read-only portal, invitation acceptance lifecycle, unified tests.</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

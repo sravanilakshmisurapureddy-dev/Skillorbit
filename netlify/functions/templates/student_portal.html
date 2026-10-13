@@ -1,0 +1,400 @@
+{% extends "base.html" %}
+
+{% block title %}My Student Career Profile — {{ student.full_name }}{% endblock %}
+
+{% block content %}
+<!-- Student Profile Header Banner -->
+<div class="card" style="margin-bottom: 24px; padding: 26px; border-left: 5px solid var(--accent-emerald);">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 6px;">
+        <h1 style="font-size: 2rem; font-weight: 800; color: #fff;">{{ student.full_name }}</h1>
+        <span class="badge badge-emerald">🔒 Verified Institutional Record</span>
+        <span class="badge {{ segment.badge_class }}">{{ segment.title }}</span>
+      </div>
+      <div style="color: var(--text-muted); font-size: 0.95rem; display: flex; gap: 16px; flex-wrap: wrap;">
+        <span><strong>Roll Number:</strong> {{ student.roll_number }}</span>
+        <span>•</span>
+        <span><strong>Branch:</strong> {{ student.branch }}</span>
+        <span>•</span>
+        <span><strong>Cohort:</strong> {{ student.academic_year }}</span>
+        <span>•</span>
+        <span><strong>Institution:</strong> {{ student.college_name }}</span>
+      </div>
+    </div>
+
+    <!-- Read-Only Enforcement Notice -->
+    <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-md); padding: 10px 16px; text-align: right;">
+      <div style="font-size: 0.76rem; font-weight: 700; color: #34d399; text-transform: uppercase;">Institutional Data Protection</div>
+      <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+        Profile details are strictly read-only and maintained by your College Placement Cell.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Stats Bar -->
+<div class="stats-grid">
+  <div class="stat-card" style="border-top: 3px solid var(--accent-emerald);">
+    <span class="stat-label">Success Score</span>
+    <span class="stat-value">{{ score_data.overall_score }}</span>
+    <span class="stat-sub">{{ score_data.grade }}</span>
+  </div>
+
+  <div class="stat-card" style="border-top: 3px solid var(--accent-amber);">
+    <span class="stat-label">Pending Invitations</span>
+    <span class="stat-value">{{ pending_count }}</span>
+    <span class="stat-sub">Action required</span>
+  </div>
+
+  <div class="stat-card" style="border-top: 3px solid var(--primary);">
+    <span class="stat-label">Accepted Offers</span>
+    <span class="stat-value">{{ accepted_count }}</span>
+    <span class="stat-sub">Confirmed interview tracks</span>
+  </div>
+
+  <div class="stat-card" style="border-top: 3px solid var(--accent-cyan);">
+    <span class="stat-label">Cumulative GPA</span>
+    <span class="stat-value">{{ "%.2f"|format(student.cgpa) }}</span>
+    <span class="stat-sub">Equivalent: {{ student.percentage }}%</span>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1.35fr; gap: 24px; align-items: start;">
+  <!-- LEFT COLUMN: Explainable Score & AI Career Insights -->
+  <div>
+    <!-- Student Success Score Card -->
+    <div class="card" style="margin-bottom: 24px;">
+      <div class="card-header">
+        <div class="card-title">
+          <span>⚡</span>
+          <span>Your Explainable Success Score</span>
+        </div>
+        <span class="badge {{ score_data.badge_class }}">{{ score_data.grade }}</span>
+      </div>
+
+      <div style="text-align: center; padding: 18px 0 10px 0;">
+        <div style="font-size: 3.2rem; font-weight: 800; color: #fff; line-height: 1;">
+          {{ score_data.overall_score }}
+        </div>
+        <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px;">Institutional Readiness Index (0 - 100)</div>
+      </div>
+
+      <!-- 4 Pillars Breakdown -->
+      <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 14px;">
+        <!-- Academic -->
+        <div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 4px;">
+            <span style="color: var(--text-muted);">Academic Foundation</span>
+            <span style="font-weight: 700; color: #fff;">{{ score_data.pillars.academic.score }} / 30</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width: {{ score_data.pillars.academic.percentage }}%; background: #6366f1;"></div>
+          </div>
+        </div>
+
+        <!-- Technical -->
+        <div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 4px;">
+            <span style="color: var(--text-muted);">Technical Stack & Certifications</span>
+            <span style="font-weight: 700; color: #fff;">{{ score_data.pillars.technical.score }} / 30</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width: {{ score_data.pillars.technical.percentage }}%; background: #06b6d4;"></div>
+          </div>
+        </div>
+
+        <!-- Practical -->
+        <div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 4px;">
+            <span style="color: var(--text-muted);">Practical Internship & Code Proof</span>
+            <span style="font-weight: 700; color: #fff;">{{ score_data.pillars.practical.score }} / 25</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width: {{ score_data.pillars.practical.percentage }}%; background: #10b981;"></div>
+          </div>
+        </div>
+
+        <!-- Soft Skills -->
+        <div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 4px;">
+            <span style="color: var(--text-muted);">Professional Brand & Soft Skills</span>
+            <span style="font-weight: 700; color: #fff;">{{ score_data.pillars.professional.score }} / 15</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width: {{ score_data.pillars.professional.percentage }}%; background: #8b5cf6;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Positive Drivers -->
+      {% if score_data.positive_indicators %}
+        <div style="margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--border-color);">
+          <div style="font-size: 0.82rem; font-weight: 700; color: #34d399; margin-bottom: 6px;">✓ Core Placement Strengths</div>
+          <ul style="font-size: 0.78rem; color: var(--text-muted); padding-left: 16px; line-height: 1.5;">
+            {% for item in score_data.positive_indicators %}
+              <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Suggested Career Pathways -->
+    <div class="card" style="margin-bottom: 24px;">
+      <div class="card-header">
+        <div class="card-title">
+          <span>🚀</span>
+          <span>Targeted Career Pathways</span>
+        </div>
+        <span class="badge badge-cyan">AI Mapped</span>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        {% for pathway in career_pathways %}
+          <div style="background: var(--bg-surface); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <span style="font-weight: 700; color: #fff; font-size: 0.88rem;">{{ pathway.role }}</span>
+              <span class="badge badge-emerald" style="font-size: 0.7rem;">{{ pathway.match_level }}</span>
+            </div>
+            <div style="font-size: 0.78rem; color: var(--text-muted);">
+              <strong>Recommended Focus:</strong> {{ pathway.recommended_focus }}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Risk Signals & Action Plan -->
+    {% if risk_flags %}
+      <div class="card" style="margin-bottom: 24px; border-color: rgba(245, 158, 11, 0.4);">
+        <div class="card-header">
+          <div class="card-title">
+            <span>💡</span>
+            <span>Recommended Growth Focus</span>
+          </div>
+          <span class="badge badge-amber">{{ risk_flags|length }} Areas</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          {% for flag in risk_flags %}
+            <div style="background: var(--bg-surface); padding: 12px; border-radius: var(--radius-sm); border-left: 3px solid #f59e0b;">
+              <div style="font-weight: 700; font-size: 0.85rem; color: #fff; margin-bottom: 2px;">{{ flag.title }}</div>
+              <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px;">{{ flag.evidence }}</p>
+              <div style="font-size: 0.75rem; color: #fde68a;">
+                <strong>Next Step:</strong> {{ flag.recommended_action }}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- RIGHT COLUMN: Invitations & Read-Only Profile Sections -->
+  <div>
+    <!-- Corporate Invitations Hub (Primary Student Interaction) -->
+    <div class="card" style="margin-bottom: 24px; border-color: rgba(99, 102, 241, 0.4); box-shadow: var(--shadow-md);">
+      <div class="card-header">
+        <div class="card-title">
+          <span>✉️</span>
+          <span>Recruitment Invitations Hub</span>
+        </div>
+        <span class="badge badge-purple">{{ invitations|length }} Received</span>
+      </div>
+
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
+        Companies partnered with your college can invite you for interviews based on your profile and skills. You can review role details and accept or decline.
+      </p>
+
+      {% if invitations %}
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          {% for inv in invitations %}
+            <div class="card" style="background: var(--bg-surface); padding: 18px; border: 1px solid {% if inv.status == 'Pending' %}rgba(99, 102, 241, 0.5){% elif inv.status == 'Accepted' %}rgba(16, 185, 129, 0.5){% else %}var(--border-color){% endif %};">
+              <!-- Top Row -->
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                <div>
+                  <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff;">{{ inv.company_name }}</h3>
+                  <div style="font-size: 0.8rem; color: var(--accent-cyan);">{{ inv.industry }}</div>
+                </div>
+
+                <span class="badge {% if inv.status == 'Accepted' %}badge-emerald{% elif inv.status == 'Pending' %}badge-amber{% elif inv.status == 'Declined' %}badge-red{% else %}badge-purple{% endif %}" style="font-size: 0.8rem; padding: 4px 10px;">
+                  Status: {{ inv.status }}
+                </span>
+              </div>
+
+              <!-- Role & Message -->
+              <div style="font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 6px;">
+                Position: <span style="color: var(--accent-cyan);">{{ inv.job_role }}</span>
+              </div>
+
+              <div style="background: var(--bg-surface-light); padding: 12px; border-radius: var(--radius-sm); font-size: 0.85rem; color: var(--text-main); margin-bottom: 12px;">
+                <strong>Recruiter Message:</strong><br>
+                <span style="color: var(--text-muted);">"{{ inv.message or 'You have been shortlisted for an interview with our technical hiring team.' }}"</span>
+              </div>
+
+              {% if inv.required_skills %}
+                <div style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 6px;">
+                  <strong>Required Skills:</strong> <span style="color: var(--text-main);">{{ inv.required_skills }}</span>
+                </div>
+              {% endif %}
+
+              {% if inv.eligibility_criteria %}
+                <div style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 12px;">
+                  <strong>Eligibility:</strong> <span style="color: var(--text-main);">{{ inv.eligibility_criteria }}</span>
+                </div>
+              {% endif %}
+
+              <div style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 14px;">
+                Received on {{ inv.created_at[:16] }}
+              </div>
+
+              <!-- Interactive Decision Buttons (When Pending) -->
+              {% if inv.status == 'Pending' %}
+                <div style="display: flex; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+                  <form method="POST" action="{{ url_for('student.respond_invitation', inv_id=inv.id) }}" style="flex: 1;">
+                    <input type="hidden" name="decision" value="Accepted">
+                    <button type="submit" class="btn btn-success" style="width: 100%; font-size: 0.85rem; padding: 8px;">
+                      ✓ Accept Invitation
+                    </button>
+                  </form>
+
+                  <form method="POST" action="{{ url_for('student.respond_invitation', inv_id=inv.id) }}" style="flex: 1;">
+                    <input type="hidden" name="decision" value="Declined">
+                    <button type="submit" class="btn btn-danger" style="width: 100%; font-size: 0.85rem; padding: 8px;" onclick="return confirm('Are you sure you want to decline this recruitment invitation?');">
+                      ✕ Decline Invitation
+                    </button>
+                  </form>
+                </div>
+              {% elif inv.status == 'Accepted' %}
+                <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-sm); padding: 8px 12px; font-size: 0.82rem; color: #34d399;">
+                  🎉 You accepted this opportunity. The hiring team has been notified and will contact you for next round details.
+                </div>
+              {% elif inv.status == 'Declined' %}
+                <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-sm); padding: 8px 12px; font-size: 0.82rem; color: #f87171;">
+                  You declined this invitation.
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="text-align: center; padding: 30px; color: var(--text-dim); font-size: 0.88rem;">
+          You currently have no active recruitment invitations. Maintain your CGPA and certifications to attract recruiters!
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Academic, Skills & Experience Record (Read-Only) -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span>📚</span>
+          <span>Verified Academic & Professional Credentials</span>
+        </div>
+        <span class="badge badge-emerald">Read-Only</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+        <div style="background: var(--bg-surface); padding: 12px; border-radius: var(--radius-md);">
+          <div class="stat-label">Academic Scores</div>
+          <div style="font-size: 1.3rem; font-weight: 800; color: #fff;">{{ "%.2f"|format(student.cgpa) }} CGPA</div>
+          <div style="font-size: 0.78rem; color: var(--text-dim);">Percentage: {{ student.percentage }}%</div>
+        </div>
+
+        <div style="background: var(--bg-surface); padding: 12px; border-radius: var(--radius-md);">
+          <div class="stat-label">Institutional Contact</div>
+          <div style="font-size: 0.85rem; color: #fff;">📧 {{ student.email }}</div>
+          <div style="font-size: 0.85rem; color: #fff;">📱 {{ student.phone or 'N/A' }}</div>
+        </div>
+      </div>
+
+      <!-- Languages -->
+      <div style="margin-bottom: 16px;">
+        <div class="form-label">Programming Languages Learned</div>
+        <div class="skill-tags">
+          {% if student.programming_languages %}
+            {% for lang in student.programming_languages.split(',') %}
+              <span class="skill-tag" style="background: rgba(99,102,241,0.15); color: #a5b4fc;">{{ lang.strip() }}</span>
+            {% endfor %}
+          {% else %}
+            <span style="color: var(--text-dim); font-size: 0.8rem;">None recorded</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Tech Skills -->
+      <div style="margin-bottom: 16px;">
+        <div class="form-label">Technical & Software Skills</div>
+        <div class="skill-tags">
+          {% if student.technical_skills %}
+            {% for sk in student.technical_skills.split(',') %}
+              <span class="skill-tag" style="background: rgba(6,182,212,0.15); color: #67e8f9;">{{ sk.strip() }}</span>
+            {% endfor %}
+          {% else %}
+            <span style="color: var(--text-dim); font-size: 0.8rem;">None recorded</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Certifications -->
+      <div style="margin-bottom: 16px;">
+        <div class="form-label">Professional Certifications</div>
+        <div class="skill-tags">
+          {% if student.certifications and student.certifications.lower() != 'none' %}
+            {% for cert in student.certifications.split(',') %}
+              <span class="skill-tag" style="background: rgba(139,92,246,0.15); color: #c084fc;">🎓 {{ cert.strip() }}</span>
+            {% endfor %}
+          {% else %}
+            <span style="color: var(--text-dim); font-size: 0.8rem;">No certifications recorded</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Internship -->
+      <div style="margin-bottom: 16px;">
+        <div class="form-label">Practical Industry Internships</div>
+        <div style="background: var(--bg-surface); padding: 12px; border-radius: var(--radius-md); font-size: 0.85rem; color: var(--text-main);">
+          {{ student.internship_details or 'No practical internship documented.' }}
+        </div>
+      </div>
+
+      <!-- Links & Soft Skills -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div>
+          <div class="form-label">Verified Links</div>
+          <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem;">
+            <div>
+              {% if student.github_url %}
+                <a href="{{ student.github_url }}" target="_blank" style="color: var(--accent-cyan);">🐙 GitHub Profile ↗</a>
+              {% else %}
+                <span style="color: var(--text-dim);">GitHub: Not linked</span>
+              {% endif %}
+            </div>
+            <div>
+              {% if student.linkedin_url %}
+                <a href="{{ student.linkedin_url }}" target="_blank" style="color: var(--accent-cyan);">🔗 LinkedIn Profile ↗</a>
+              {% else %}
+                <span style="color: var(--text-dim);">LinkedIn: Not linked</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="form-label">Soft Skills</div>
+          <div class="skill-tags">
+            {% if student.soft_skills %}
+              {% for s in student.soft_skills.split(',') %}
+                <span class="skill-tag">{{ s.strip() }}</span>
+              {% endfor %}
+            {% else %}
+              <span style="color: var(--text-dim); font-size: 0.8rem;">None recorded</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
