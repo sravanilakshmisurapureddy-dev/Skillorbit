@@ -1,21 +1,37 @@
 """
-Campus2Career AI - Database Engine & ORM Layer
-Member 1: Data Integration & Database Lead
+Campus2Career AI - Database Engine and ORM Layer
+Member 1: Data Integration and Database Lead
 """
 
 import sqlite3
 import os
+import shutil
 import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "campus2career.db")
+
+def get_db_path():
+    """Returns database path, utilizing writable /tmp in serverless/Lambda environments."""
+    if os.environ.get('AWS_LAMBDA_FUNCTION_NAME') or os.environ.get('LAMBDA_TASK_ROOT') or os.environ.get('NETLIFY'):
+        tmp_db = '/tmp/campus2career.db'
+        orig_db = os.path.join(os.path.dirname(__file__), 'campus2career.db')
+        if not os.path.exists(tmp_db) and os.path.exists(orig_db):
+            try:
+                shutil.copyfile(orig_db, tmp_db)
+            except Exception:
+                pass
+        return tmp_db
+    return os.path.join(os.path.dirname(__file__), 'campus2career.db')
+
+
+DB_PATH = get_db_path()
 
 
 def get_db():
     """Returns a SQLite connection with row-factory enabled."""
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
+    conn.execute('PRAGMA foreign_keys = ON')
     return conn
 
 
@@ -36,7 +52,7 @@ def init_db():
     )
     """)
 
-    # 2. Users Table (Authentication & RBAC)
+    # 2. Users Table (Authentication and RBAC)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

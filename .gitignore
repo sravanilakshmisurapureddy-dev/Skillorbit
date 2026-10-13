@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+.Python
+env/
+venv/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Local database (will be bundled separately for Netlify)
+# campus2career.db  <-- Keep this for Netlify bundling
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+
+# Test artifacts
+test_output/
